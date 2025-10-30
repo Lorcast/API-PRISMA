@@ -1,55 +1,47 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
+datasource db {
+  provider = "sqlite" // ou "postgresql" se quiser usar Postgres
+  url      = "file:./dev.db" // caminho para o banco SQLite
+}
 
 
 generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-}
+
 
 model User {
-  id        Int        @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   name      String
-  email     String     @unique
-  createdAt DateTime   @default(now())
-
+  email     String    @unique
+  author    Author?
   favorites Favorite[]
 }
 
 model Author {
-  id        Int       @id @default(autoincrement())
-  name      String
-  bio       String?
-  createdAt DateTime  @default(now())
-
-  posts     Post[]
+  id       Int     @id @default(autoincrement())
+  bio      String?
+  userId   Int     @unique
+  user     User    @relation(fields: [userId], references: [id])
+  posts    Post[]
 }
 
 model Post {
-  id        Int        @id @default(autoincrement())
-  title     String
-  content   String
-  authorId  Int
-  createdAt DateTime   @default(now())
-
-  author    Author     @relation(fields: [authorId], references: [id])
-  favorites Favorite[]
+  id           Int        @id @default(autoincrement())
+  title        String
+  content      String
+  publishedAt  DateTime   @default(now())
+  authorId     Int
+  author       Author     @relation(fields: [authorId], references: [id])
+  favoritedBy  Favorite[]
 }
 
 model Favorite {
-  id        Int       @id @default(autoincrement())
-  userId    Int
-  postId    Int
-  createdAt DateTime  @default(now())
-
-  user      User      @relation(fields: [userId], references: [id])
-  post      Post      @relation(fields: [postId], references: [id])
+  id      Int    @id @default(autoincrement())
+  userId  Int
+  postId  Int
+  user    User   @relation(fields: [userId], references: [id])
+  post    Post   @relation(fields: [postId], references: [id])
+  @@unique([userId, postId])
 }

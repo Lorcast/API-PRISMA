@@ -1,13 +1,11 @@
+// src/app.module.ts
 import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
-import { PrismaModule } from './prisma/prisma.module';
-import { PostsModule } from './posts/posts.module';
 import { AuthorsModule } from './authors/authors.module';
+import { PostsModule } from './posts/posts.module';
 import { FavoritesModule } from './favorites/favorites.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, PostsModule, AuthorsModule, FavoritesModule],
+  imports: [UsersModule, AuthorsModule, PostsModule, FavoritesModule],
 })
 export class AppModule {}
-
-

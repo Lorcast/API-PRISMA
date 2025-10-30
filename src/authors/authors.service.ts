@@ -1,44 +1,65 @@
+// src/authors/authors.service.ts
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AuthorsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  // Criar novo autor vinculado a um usuário
-  async create(data: { userId: number; bio?: string }) {
-    return this.prisma.authors.create({
-      data,
+  findAll() {
+    return this.prisma.author.findMany({
+      include: { user: true, posts: true },
     });
   }
 
-  // Listar todos os autores
-  async findAll() {
-    return this.prisma.authors.findMany({
-      include: { user: true, posts: true }, // traz o usuário e os posts do autor
-    });
-  }
-
-  // Buscar um autor específico
-  async findOne(id: number) {
-    return this.prisma.authors.findUnique({
+  findOne(id: number) {
+    return this.prisma.author.findUnique({
       where: { id },
       include: { user: true, posts: true },
     });
   }
 
-  // Atualizar bio do autor (ou outro campo)
-  async update(id: number, data: { bio?: string }) {
-    return this.prisma.authors.update({
-      where: { id },
-      data,
+  // Criar autor usando um usuário existente
+  createWithExistingUser(userId: number, bio?: string) {
+    return this.prisma.author.create({
+      data: {
+        bio,
+        userId, // apenas userId, sem "user" direto
+      },
+      include: { user: true, posts: true },
     });
   }
 
-  // Excluir autor (geralmente não obrigatório, mas deixamos aqui)
-  async remove(id: number) {
-    return this.prisma.authors.delete({
+  // Criar autor e usuário novo ao mesmo tempo ou conectar a um existente
+  async createWithNewUser(data: { name: string; email: string; bio?: string }) {
+    const { name, email, bio } = data;
+
+    return this.prisma.author.create({
+      data: {
+        bio,
+        user: {
+          connectOrCreate: {
+            where: { email },      // procura por email existente
+            create: { name, email } // cria se não existir
+          },
+        },
+      },
+      include: { user: true, posts: true },
+    });
+  }
+
+  update(id: number, bio: string) {
+    return this.prisma.author.update({
       where: { id },
+      data: { bio },
+      include: { user: true, posts: true },
+    });
+  }
+
+  remove(id: number) {
+    return this.prisma.author.delete({
+      where: { id },
+      include: { user: true, posts: true },
     });
   }
 }
